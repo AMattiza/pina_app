@@ -100,7 +100,7 @@ export default function App() {
   const avgUnitsFirstYear = totalNew > 0 ? totalUnitsFirstYear / totalNew : 0;
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
-  // 3) Chart-Daten (für LicenseChart & CSV)
+  // 3) Chart-Daten (für LicenseChart)
   const chartData = newPartnersPerMonth.map((cSize, i) => {
     const yyyy = startYear + Math.floor((startMonth - 1 + i) / 12);
     const mm = ((startMonth - 1 + i) % 12) + 1;
@@ -144,50 +144,6 @@ export default function App() {
   const totalLicense1 = chartData.reduce((sum, r) => sum + r.tier1, 0);
   const totalLicense2 = chartData.reduce((sum, r) => sum + r.tier2, 0);
   const totalUnitsAll = chartData.reduce((sum, r) => sum + r.totalUnits, 0);
-
-  // CSV-Export-Funktion (Chart-Daten)
-  const handleExportCSV = () => {
-    const headers = [
-      'Monat',
-      'MonatLabel',
-      'Neukunden',
-      'Nachbesteller',
-      'BruttoRohertrag',
-      'VertriebsKosten',
-      'LogistikKosten',
-      'DeckungsbeitragII',
-      'Lizenz1',
-      'Lizenz2',
-      'Restgewinn',
-      'TotalUnits'
-    ];
-    const rows = chartData.map(r =>
-      [
-        r.month,
-        r.monthLabel,
-        r.newCustomers,
-        r.reorderCustomers,
-        r.bruttoRohertrag,
-        r.vertriebsKosten,
-        r.logistikKosten,
-        r.deckungsbeitragII,
-        r.tier1,
-        r.tier2,
-        r.restgewinn,
-        r.totalUnits
-      ].join(';')
-    );
-    const csv = [headers.join(';'), ...rows].join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `chart_data_${new Date().toISOString()}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
 
   // JSON-Export-Funktion (alle Daten)
   const handleExportAll = () => {
@@ -234,6 +190,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={handleExportAll}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Alle Daten exportieren (JSON)
+        </button>
+      </div>
+
       <h1 className="text-3xl font-semibold mb-6">Business Case Simulator</h1>
 
       <CollapsibleSection title="Basisdaten & Produktkalkulation">
@@ -244,121 +209,4 @@ export default function App() {
         <InputMask data={data} onChange={setData} sections={['Händlerwachstum','Bestellverhalten']} />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Kostenplanung (Pina)">
-        <InputMask data={data} onChange={setData} sections={['Kostenplanung (Pina)']} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
-        <InputMask
-          data={data}
-          onChange={setData}
-          sections={['Lizenz 1 / Städteserie (C-Hub)','Lizenz 2 / Website & Shop (C-Hub)']}
-        />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Übersicht – Kundenzahlen">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Gesamt Neukunden</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalNew)}</p>
-            <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(reorders)}</p>
-            <p className="text-sm text-gray-500">Anzahl mit mind. einer Nachbestellung im ersten Jahr</p>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Übersicht – Durchschnittswerte">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø VE pro Händler/Jahr</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(avgUnitsFirstYear)}</p>
-            <p className="text-sm text-gray-500">Durchschnitt VE pro Kunde im ersten Jahr</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø Umsatz pro Händler/Jahr</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(avgRevenueFirstYear)}</p>
-            <p className="text-sm text-gray-500">Durchschnittlicher Umsatz pro Kunde im ersten Jahr</p>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Übersicht – Gesamt VE">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">VE insgesamt Ende Planungszeitraum</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll)}</p>
-            <p className="text-sm text-gray-500">Summe aller VE über {months} Monate</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø VE pro Monat</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll / months)}</p>
-            <p className="text-sm text-gray-500">Durchschnittliche VE je Monat</p>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Lizenz-KPIs">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Gesamt Erlös Lizenz 1</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1)}</p>
-            <p className="text-sm text-gray-500">Summe Lizenz 1-Erlöse</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø monatlicher Erlös Lizenz 1</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1 / months)}</p>
-            <p className="text-sm text-gray-500">Durchschnitt pro Monat</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Gesamt Erlös Lizenz 2</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense2)}</p>
-            <p className="text-sm text-gray-500">Summe Lizenz 2-Erlöse</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø monatlicher Erlös Lizenz 2</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense2 / months)}</p>
-            <p className="text-sm text-gray-500">Durchschnitt pro Monat</p>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Einnahmen & Marge">
-        <LicenseChart
-          data={data}
-          startYear={startYear}
-          startMonth={startMonth}
-          dataKey="tier1"
-          strokeColor="#34C759"
-          name="Lizenz 1 Erlös"
-          dataKey2="tier2"
-          strokeColor2="#007AFF"
-          name2="Lizenz 2 Erlös"
-          dataKey3="deckungsbeitragII"
-          strokeColor3="#FFD60A"
-          name3="Deckungsbeitrag II"
-          dataKey4="restgewinn"
-          strokeColor4="#FF9500"
-          name4="Restgewinn"
-        />
-        <div className="mt-4 flex space-x-4">
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Chart-Daten als CSV exportieren
-          </button>
-          <button
-            onClick={handleExportAll}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Alle Daten exportieren (JSON)
-          </button>
-        </div>
-      </CollapsibleSection>
-    </div>
-  );
-}
+      <CollapsibleSection title="Kostenplanung (Pina)">\
