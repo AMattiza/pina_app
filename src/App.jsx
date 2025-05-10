@@ -97,7 +97,7 @@ export default function App() {
     }
     totalUnitsFirstYear += cohortSize * ve;
   });
-  const avgUnitsFirstYear = totalNew > 0 ? totalUnitsFirstYear / totalNew : 0;
+  const avgUnitsFirstYear = totalUnitsFirstYear / totalNew || 0;
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
   // 3) Chart-Daten (für LicenseChart)
@@ -201,27 +201,15 @@ export default function App() {
       </div>
 
       <CollapsibleSection title="Basisdaten & Produktkalkulation">
-        <InputMask
-          data={data}
-          onChange={setData}
-          sections={['Basisdaten','Produktkalkulation']}
-        />
+        <InputMask data={data} onChange={setData} sections={['Basisdaten','Produktkalkulation']} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Händlerwachstum & Bestellverhalten">
-        <InputMask
-          data={data}
-          onChange={setData}
-          sections={['Händlerwachstum','Bestellverhalten']}
-        />
+        <InputMask data={data} onChange={setData} sections={['Händlerwachstum','Bestellverhalten']} />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Kostenplanung (PINGA)">
-        <InputMask
-          data={data}
-          onChange={setData}
-          sections={['Kostenplanung (Pina)']}
-        />
+      <CollapsibleSection title="Kostenplanung (Pina)">
+        <InputMask data={data} onChange={setData} sections={['Kostenplanung (Pina)']} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
@@ -240,4 +228,4 @@ export default function App() {
             <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
           </div>
           <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3>
+            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</
