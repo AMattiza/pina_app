@@ -145,7 +145,7 @@ export default function App() {
   const totalLicense2 = chartData.reduce((sum, r) => sum + r.tier2, 0);
   const totalUnitsAll = chartData.reduce((sum, r) => sum + r.totalUnits, 0);
 
-  // CSV-Export-Funktion (Chart-Daten)
+  // CSV-Export für Chart-Daten
   const handleExportCSV = () => {
     const headers = [
       'Monat','MonatLabel','Neukunden','Nachbesteller',
@@ -171,7 +171,7 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  // Neuer Export-All-CSV Handler
+  // CSV-Export für alle Daten
   const handleExportAllCSV = () => {
     let csv = 'Feld;Wert\r\n';
     Object.entries(data).forEach(([key, val]) => {
@@ -255,7 +255,7 @@ export default function App() {
         />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Kundenzahlen">
+      <CollapsibleSection title="Übersicht – Kundenzahlen">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Gesamt Neukunden</h3>
@@ -263,14 +263,4 @@ export default function App() {
             <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
           </div>
           <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(reorders)}</p>
-            <p className="text-sm text-gray-500">Anzahl mit mind. einer Nachbestellung im ersten Jahr</p>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Übersicht – Durchschnittswerte">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø VE pro Händler/Jahr</h3>
+            <h
