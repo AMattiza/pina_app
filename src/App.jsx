@@ -70,13 +70,16 @@ export default function App() {
   const [startYear, startMonth] = startDate.split('-').map(Number);
 
   const newPartnersPerMonth = Array.from(
-    { length: months }, (_, j) =>
+    { length: months },
+    (_, j) =>
       newPartners + (increaseInterval > 0 ? Math.floor(j / increaseInterval) * increaseAmount : 0)
   );
 
   const totalNew = newPartnersPerMonth.reduce((a, b) => a + b, 0);
   const reorders = Math.round(
-    newPartnersPerMonth.slice(0, months - reorderCycle).reduce((sum, c) => sum + c * (reorderRate / 100), 0)
+    newPartnersPerMonth
+      .slice(0, months - reorderCycle)
+      .reduce((sum, c) => sum + c * (reorderRate / 100), 0)
   );
 
   let totalUnitsFirstYear = 0;
@@ -97,6 +100,7 @@ export default function App() {
     const yyyy = startYear + Math.floor((startMonth - 1 + i) / 12);
     const mm = ((startMonth - 1 + i) % 12) + 1;
     const monthLabel = `${String(mm).padStart(2, '0')}/${yyyy}`;
+
     const baseUnits = cSize * unitsPerDisplay;
     let reorderUnits = 0;
     for (let k = 1; k * reorderCycle <= 23; k++) {
@@ -105,6 +109,7 @@ export default function App() {
         reorderUnits += cSize * (reorderRate / 100) * unitsPerDisplay;
       }
     }
+
     const totalUnits = baseUnits + reorderUnits;
     const bruttoRohertrag = (sellPrice - costPrice) * totalUnits;
     const vertriebsKosten = salesCost * totalUnits;
@@ -114,6 +119,7 @@ export default function App() {
     const tier1 = net1 * totalUnits;
     const tier2 = cSize > license2Threshold ? license2 * totalUnits : 0;
     const rest = deckungsbeitragII - tier1 - tier2;
+
     return {
       month: i + 1,
       monthLabel,
@@ -136,8 +142,27 @@ export default function App() {
   const lastLicense1 = chartData[chartData.length - 1]?.tier1 || 0;
 
   const handleExportAll = () => {
-    const exportPayload = { inputs: data, kpis: { totalNew, reorders, avgUnitsFirstYear: Number(avgUnitsFirstYear.toFixed(2)), avgRevenueFirstYear: Number(avgRevenueFirstYear.toFixed(2)), totalUnitsAll, avgUnitsPerMonth: Number((totalUnitsAll / months).toFixed(2)), totalLicense1: Number(totalLicense1.toFixed(2)), avgLicense1PerMonth: Number((totalLicense1 / months).toFixed(2)), totalLicense2: Number(totalLicense2.toFixed(2)), avgLicense2PerMonth: Number((totalLicense2 / months).toFixed(2)), lastLicense1Month: Number(lastLicense1.toFixed(2)) }, chartData };
-    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const exportPayload = {
+      inputs: data,
+      kpis: {
+        totalNew,
+        reorders,
+        avgUnitsFirstYear: Number(avgUnitsFirstYear.toFixed(2)),
+        avgRevenueFirstYear: Number(avgRevenueFirstYear.toFixed(2)),
+        totalUnitsAll,
+        avgUnitsPerMonth: Number((totalUnitsAll / months).toFixed(2)),
+        totalLicense1: Number(totalLicense1.toFixed(2)),
+        avgLicense1PerMonth: Number((totalLicense1 / months).toFixed(2)),
+        totalLicense2: Number(totalLicense2.toFixed(2)),
+        avgLicense2PerMonth: Number((totalLicense2 / months).toFixed(2)),
+        lastLicense1Month: Number(lastLicense1.toFixed(2))
+      },
+      chartData
+    };
+    const blob = new Blob(
+      [JSON.stringify(exportPayload, null, 2)],
+      { type: 'application/json;charset=utf-8;' }
+    );
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -148,34 +173,68 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  const fmt = v => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + ' €';
-  const fmtNum = v => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+  const fmt = v =>
+    new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(v) + ' €';
+  const fmtNum = v =>
+    new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(v);
 
   return (
     <div className="relative min-h-screen bg-gray-50 p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-semibold">Business Case Simulator</h1>
-        <button onClick={handleExportAll} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Alle Daten exportieren (JSON)</button>
+        <button
+          onClick={handleExportAll}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Alle Daten exportieren (JSON)
+        </button>
       </div>
 
       <CollapsibleSection title="Basisdaten & Produktkalkulation">
-        <InputMask data={data} onChange={setData} sections={['Basisdaten', 'Produktkalkulation']} />
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={['Basisdaten', 'Produktkalkulation']}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection title="Händlerwachstum & Bestellverhalten">
-        <InputMask data={data} onChange={setData} sections={['Händlerwachstum', 'Bestellverhalten']} />
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={['Händlerwachstum', 'Bestellverhalten']}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection title="Kostenplanung (Pina)">
-        <InputMask data={data} onChange={setData} sections={['Kostenplanung (Pina)']} />
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={['Kostenplanung (Pina)']}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
-        <InputMask data={data} onChange={setData} sections={['Lizenz 1 / Städteserie (C-Hub)', 'Lizenz 2 / Website & Shop (C-Hub)']} />
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={[
+            'Lizenz 1 / Städteserie (C-Hub)',
+            'Lizenz 2 / Website & Shop (C-Hub)'
+          ]}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection title="Übersicht – Kundenzahlen">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">... (unchanged) ...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* … unverändert … */}
+        </div>
       </CollapsibleSection>
 
       <CollapsibleSection title="Lizenz-KPIs">
@@ -187,13 +246,17 @@ export default function App() {
           </div>
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Ø monatlicher Erlös Lizenz 1</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1 / months)}</p>
+            <p className="mt-2 text-2xl font-semibold">
+              {fmt(totalLicense1 / months)}
+            </p>
             <p className="text-sm text-gray-500">Durchschnitt pro Monat</p>
           </div>
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Erlös Lizenz 1 (letzter Monat)</h3>
             <p className="mt-2 text-2xl font-semibold">{fmt(lastLicense1)}</p>
-            <p className="text-sm text-gray-500">Im letzten Monat der Planung</p>
+            <p className="text-sm text-gray-500">
+              Im letzten Monat der Planung
+            </p>
           </div>
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Gesamt Erlös Lizenz 2</h3>
@@ -202,7 +265,9 @@ export default function App() {
           </div>
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Ø monatlicher Erlös Lizenz 2</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense2 / months)}</p>
+            <p className="mt-2 text-2xl font-semibold">
+              {fmt(totalLicense2 / months)}
+            </p>
             <p className="text-sm text-gray-500">Durchschnitt pro Monat</p>
           </div>
         </div>
@@ -210,7 +275,7 @@ export default function App() {
 
       <CollapsibleSection title="Einnahmen & Marge">
         <LicenseChart
-          data={data}
+          data={chartData}
           startYear={startYear}
           startMonth={startMonth}
           dataKey="tier1"
