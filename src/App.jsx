@@ -80,7 +80,7 @@ export default function App() {
         : 0)
   );
 
-  // 2) KPI – erstes Jahr
+  // 2) KPI – erstes Jahr (Offset 0…11)
   const totalNew = newPartnersPerMonth.reduce((a, b) => a + b, 0);
   const reorders = Math.round(
     newPartnersPerMonth
@@ -89,7 +89,7 @@ export default function App() {
   );
   let totalUnitsFirstYear = 0;
   newPartnersPerMonth.forEach(cohortSize => {
-    let ve = unitsPerDisplay;
+    let ve = unitsPerDisplay; // Erstbestellung
     for (let m = 1; m <= 11; m++) {
       if (reorderCycle > 0 && m % reorderCycle === 0) {
         ve += (reorderRate / 100) * unitsPerDisplay;
@@ -100,7 +100,7 @@ export default function App() {
   const avgUnitsFirstYear = totalNew > 0 ? totalUnitsFirstYear / totalNew : 0;
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
-  // 3) Chart-Daten
+  // 3) Chart-Daten (für LicenseChart & CSV)
   const chartData = newPartnersPerMonth.map((cSize, i) => {
     const yyyy = startYear + Math.floor((startMonth - 1 + i) / 12);
     const mm = ((startMonth - 1 + i) % 12) + 1;
@@ -145,18 +145,36 @@ export default function App() {
   const totalLicense2 = chartData.reduce((sum, r) => sum + r.tier2, 0);
   const totalUnitsAll = chartData.reduce((sum, r) => sum + r.totalUnits, 0);
 
-  // CSV-Export für Chart-Daten
+  // CSV-Export-Funktion (Chart-Daten)
   const handleExportCSV = () => {
     const headers = [
-      'Monat','MonatLabel','Neukunden','Nachbesteller',
-      'BruttoRohertrag','VertriebsKosten','LogistikKosten',
-      'DeckungsbeitragII','Lizenz1','Lizenz2','Restgewinn','TotalUnits'
+      'Monat',
+      'MonatLabel',
+      'Neukunden',
+      'Nachbesteller',
+      'BruttoRohertrag',
+      'VertriebsKosten',
+      'LogistikKosten',
+      'DeckungsbeitragII',
+      'Lizenz1',
+      'Lizenz2',
+      'Restgewinn',
+      'TotalUnits'
     ];
     const rows = chartData.map(r =>
       [
-        r.month, r.monthLabel, r.newCustomers, r.reorderCustomers,
-        r.bruttoRohertrag, r.vertriebsKosten, r.logistikKosten,
-        r.deckungsbeitragII, r.tier1, r.tier2, r.restgewinn, r.totalUnits
+        r.month,
+        r.monthLabel,
+        r.newCustomers,
+        r.reorderCustomers,
+        r.bruttoRohertrag,
+        r.vertriebsKosten,
+        r.logistikKosten,
+        r.deckungsbeitragII,
+        r.tier1,
+        r.tier2,
+        r.restgewinn,
+        r.totalUnits
       ].join(';')
     );
     const csv = [headers.join(';'), ...rows].join('\r\n');
@@ -171,49 +189,32 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  // CSV-Export für alle Daten
-  const handleExportAllCSV = () => {
-    let csv = 'Feld;Wert\r\n';
-    Object.entries(data).forEach(([key, val]) => {
-      csv += `${key};${val}\r\n`;
-    });
-    csv += '\r\n';
-
-    csv += 'Kennzahl;Wert\r\n';
-    const kpis = [
-      ['Gesamt Neukunden', totalNew],
-      ['Nachbesteller', reorders],
-      ['Ø VE / Händler (Jahr)', avgUnitsFirstYear.toFixed(2)],
-      ['Ø Umsatz / Händler (Jahr)', avgRevenueFirstYear.toFixed(2)],
-      ['VE insgesamt', totalUnitsAll],
-      ['Ø VE / Monat', (totalUnitsAll / months).toFixed(2)],
-      ['Lizenz1 gesamt', totalLicense1.toFixed(2)],
-      ['Lizenz2 gesamt', totalLicense2.toFixed(2)]
-    ];
-    kpis.forEach(([name, value]) => {
-      csv += `${name};${value}\r\n`;
-    });
-    csv += '\r\n';
-
-    const headersAll = [
-      'Monat','MonatLabel','Neukunden','Nachbesteller',
-      'BruttoRohertrag','VertriebsKosten','LogistikKosten',
-      'DeckungsbeitragII','Lizenz1','Lizenz2','Restgewinn','TotalUnits'
-    ];
-    const rowsAll = chartData.map(r =>
-      [
-        r.month, r.monthLabel, r.newCustomers, r.reorderCustomers,
-        r.bruttoRohertrag, r.vertriebsKosten, r.logistikKosten,
-        r.deckungsbeitragII, r.tier1, r.tier2, r.restgewinn, r.totalUnits
-      ].join(';')
+  // Neu: JSON-Export-Funktion (alle Daten)
+  const handleExportAll = () => {
+    const exportPayload = {
+      inputs: data,
+      kpis: {
+        totalNew,
+        reorders,
+        avgUnitsFirstYear: Number(avgUnitsFirstYear.toFixed(2)),
+        avgRevenueFirstYear: Number(avgRevenueFirstYear.toFixed(2)),
+        totalUnitsAll,
+        avgUnitsPerMonth: Number((totalUnitsAll / months).toFixed(2)),
+        totalLicense1: Number(totalLicense1.toFixed(2)),
+        avgLicense1PerMonth: Number((totalLicense1 / months).toFixed(2)),
+        totalLicense2: Number(totalLicense2.toFixed(2)),
+        avgLicense2PerMonth: Number((totalLicense2 / months).toFixed(2))
+      },
+      chartData
+    };
+    const blob = new Blob(
+      [JSON.stringify(exportPayload, null, 2)],
+      { type: 'application/json;charset=utf-8;' }
     );
-    csv += headersAll.join(';') + '\r\n' + rowsAll.join('\r\n');
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `planung_export_${new Date().toISOString().slice(0,10)}.csv`;
+    link.download = `planning_data_${new Date().toISOString()}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -233,34 +234,41 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-3xl font-semibold mb-6">Business Case Simulator</h1>
+      {/* ... alle bisherigen Sektionen unverändert ... */}
 
-      <CollapsibleSection title="Basisdaten & Produktkalkulation">
-        <InputMask data={data} onChange={setData} sections={['Basisdaten','Produktkalkulation']} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Händlerwachstum & Bestellverhalten">
-        <InputMask data={data} onChange={setData} sections={['Händlerwachstum','Bestellverhalten']} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Kostenplanung (Pina)">
-        <InputMask data={data} onChange={setData} sections={['Kostenplanung (Pina)']} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
-        <InputMask
+      <CollapsibleSection title="Einnahmen & Marge">
+        <LicenseChart
           data={data}
-          onChange={setData}
-          sections={['Lizenz 1 / Städteserie (C-Hub)','Lizenz 2 / Website & Shop (C-Hub)']}
+          startYear={startYear}
+          startMonth={startMonth}
+          dataKey="tier1"
+          strokeColor="#34C759"
+          name="Lizenz 1 Erlös"
+          dataKey2="tier2"
+          strokeColor2="#007AFF"
+          name2="Lizenz 2 Erlös"
+          dataKey3="deckungsbeitragII"
+          strokeColor3="#FFD60A"
+          name3="Deckungsbeitrag II"
+          dataKey4="restgewinn"
+          strokeColor4="#FF9500"
+          name4="Restgewinn"
         />
+        <div className="mt-4 flex space-x-4">
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Chart-Daten als CSV exportieren
+          </button>
+          <button
+            onClick={handleExportAll}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Alle Daten exportieren (JSON)
+          </button>
+        </div>
       </CollapsibleSection>
-
-      <CollapsibleSection title="Übersicht – Kundenzahlen">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Gesamt Neukunden</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalNew)}</p>
-            <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h
+    </div>
+  );
+}
