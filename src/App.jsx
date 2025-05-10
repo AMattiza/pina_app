@@ -89,7 +89,7 @@ export default function App() {
   );
   let totalUnitsFirstYear = 0;
   newPartnersPerMonth.forEach(cohortSize => {
-    let ve = unitsPerDisplay; // Erstbestellung
+    let ve = unitsPerDisplay;
     for (let m = 1; m <= 11; m++) {
       if (reorderCycle > 0 && m % reorderCycle === 0) {
         ve += (reorderRate / 100) * unitsPerDisplay;
@@ -201,12 +201,43 @@ export default function App() {
       </div>
 
       <CollapsibleSection title="Basisdaten & Produktkalkulation">
-        <InputMask data={data} onChange={setData} sections={['Basisdaten','Produktkalkulation']} />
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={['Basisdaten','Produktkalkulation']}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection title="Händlerwachstum & Bestellverhalten">
-        <InputMask data={data} onChange={setData} sections={['Händlerwachstum','Bestellverhalten']} />
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={['Händlerwachstum','Bestellverhalten']}
+        />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Kostenplanung (Pina)">
-        <InputMask data={data} onChange={setData} sections={[
+      <CollapsibleSection title="Kostenplanung (PINGA)">
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={['Kostenplanung (Pina)']}
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
+        <InputMask
+          data={data}
+          onChange={setData}
+          sections={['Lizenz 1 / Städteserie (C-Hub)', 'Lizenz 2 / Website & Shop (C-Hub)']}
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Übersicht – Kundenzahlen">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Gesamt Neukunden</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalNew)}</p>
+            <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3>
