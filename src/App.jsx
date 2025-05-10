@@ -189,8 +189,9 @@ export default function App() {
     }).format(v);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="flex justify-end mb-6">
+    <div className="relative min-h-screen bg-gray-50 p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-semibold">Business Case Simulator</h1>
         <button
           onClick={handleExportAll}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -198,8 +199,6 @@ export default function App() {
           Alle Daten exportieren (JSON)
         </button>
       </div>
-
-      <h1 className="text-3xl font-semibold mb-6">Business Case Simulator</h1>
 
       <CollapsibleSection title="Basisdaten & Produktkalkulation">
         <InputMask data={data} onChange={setData} sections={['Basisdaten','Produktkalkulation']} />
@@ -209,4 +208,5 @@ export default function App() {
         <InputMask data={data} onChange={setData} sections={['Händlerwachstum','Bestellverhalten']} />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Kostenplanung (Pina)">\
+      <CollapsibleSection title="Kostenplanung (Pina)">
+        <InputMask data={data} onChange={setData} sections={[
