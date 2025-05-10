@@ -97,7 +97,7 @@ export default function App() {
     }
     totalUnitsFirstYear += cohortSize * ve;
   });
-  const avgUnitsFirstYear = totalUnitsFirstYear / totalNew || 0;
+  const avgUnitsFirstYear = totalNew > 0 ? totalUnitsFirstYear / totalNew : 0;
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
   // 3) Chart-Daten (für LicenseChart)
@@ -213,11 +213,7 @@ export default function App() {
       </CollapsibleSection>
 
       <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
-        <InputMask
-          data={data}
-          onChange={setData}
-          sections={['Lizenz 1 / Städteserie (C-Hub)', 'Lizenz 2 / Website & Shop (C-Hub)']}
-        />
+        <InputMask data={data} onChange={setData} sections={['Lizenz 1 / Städteserie (C-Hub)','Lizenz 2 / Website & Shop (C-Hub)']} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Übersicht – Kundenzahlen">
@@ -227,5 +223,23 @@ export default function App() {
             <p className="mt-2 text-2xl font-semibold">{fmtNum(totalNew)}</p>
             <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
           </div>
+          <div className="p-4	bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(reorders)}</p>
+            <p className="text-sm text-gray-500">Anzahl mit mind. einer Nachbestellung im ersten Jahr</p>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Übersicht – Durchschnittswerte">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</
+            <h3 className="font-medium">Ø VE pro Händler/Jahr</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(avgUnitsFirstYear)}</p>
+            <p className="text-sm text-gray-500">Durchschnitt VE pro Kunde im ersten Jahr</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Ø Umsatz pro Händler/Jahr</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(avgRevenueFirstYear)}</p>
+            <p className="text-sm text-gray-500">Durchschnittlicher Umsatz pro Kunde im ersten Jahr</p>
+          </div>
