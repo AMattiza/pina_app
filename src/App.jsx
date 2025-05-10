@@ -255,7 +255,7 @@ export default function App() {
         />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Übersicht – Kundenzahlen">
+      <CollapsibleSection title="Kundenzahlen">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Gesamt Neukunden</h3>
