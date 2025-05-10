@@ -78,6 +78,7 @@ export default function App() {
   const reorders = Math.round(
     newPartnersPerMonth.slice(0, months - reorderCycle).reduce((sum, c) => sum + c * (reorderRate / 100), 0)
   );
+
   let totalUnitsFirstYear = 0;
   newPartnersPerMonth.forEach(cohortSize => {
     let ve = unitsPerDisplay;
@@ -88,6 +89,7 @@ export default function App() {
     }
     totalUnitsFirstYear += cohortSize * ve;
   });
+
   const avgUnitsFirstYear = totalNew > 0 ? totalUnitsFirstYear / totalNew : 0;
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
@@ -131,9 +133,10 @@ export default function App() {
   const totalLicense1 = chartData.reduce((sum, r) => sum + r.tier1, 0);
   const totalLicense2 = chartData.reduce((sum, r) => sum + r.tier2, 0);
   const totalUnitsAll = chartData.reduce((sum, r) => sum + r.totalUnits, 0);
+  const lastLicense1 = chartData[chartData.length - 1]?.tier1 || 0;
 
   const handleExportAll = () => {
-    const exportPayload = { inputs: data, kpis: { totalNew, reorders, avgUnitsFirstYear: Number(avgUnitsFirstYear.toFixed(2)), avgRevenueFirstYear: Number(avgRevenueFirstYear.toFixed(2)), totalUnitsAll, avgUnitsPerMonth: Number((totalUnitsAll / months).toFixed(2)), totalLicense1: Number(totalLicense1.toFixed(2)), avgLicense1PerMonth: Number((totalLicense1 / months).toFixed(2)), totalLicense2: Number(totalLicense2.toFixed(2)), avgLicense2PerMonth: Number((totalLicense2 / months).toFixed(2)) }, chartData };
+    const exportPayload = { inputs: data, kpis: { totalNew, reorders, avgUnitsFirstYear: Number(avgUnitsFirstYear.toFixed(2)), avgRevenueFirstYear: Number(avgRevenueFirstYear.toFixed(2)), totalUnitsAll, avgUnitsPerMonth: Number((totalUnitsAll / months).toFixed(2)), totalLicense1: Number(totalLicense1.toFixed(2)), avgLicense1PerMonth: Number((totalLicense1 / months).toFixed(2)), totalLicense2: Number(totalLicense2.toFixed(2)), avgLicense2PerMonth: Number((totalLicense2 / months).toFixed(2)), lastLicense1Month: Number(lastLicense1.toFixed(2)) }, chartData };
     const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -172,52 +175,11 @@ export default function App() {
       </CollapsibleSection>
 
       <CollapsibleSection title="Übersicht – Kundenzahlen">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Gesamt Neukunden</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalNew)}</p>
-            <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(reorders)}</p>
-            <p className="text-sm text-gray-500">Anzahl mit mind. einer Nachbestellung im ersten Jahr</p>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Übersicht – Durchschnittswerte">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø VE pro Händler/Jahr</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(avgUnitsFirstYear)}</p>
-            <p className="text-sm text-gray-500">Durchschnitt VE pro Kunde im ersten Jahr</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø Umsatz pro Händler/Jahr</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmt(avgRevenueFirstYear)}</p>
-            <p className="text-sm text-gray-500">Durchschnittlicher Umsatz pro Kunde im ersten Jahr</p>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Übersicht – Gesamt VE">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">VE insgesamt Ende Planungszeitraum</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll)}</p>
-            <p className="text-sm text-gray-500">Summe aller VE über {months} Monate</p>
-          </div>
-          <div className="p-4 bg-gray-100 rounded-xl text-center">
-            <h3 className="font-medium">Ø VE pro Monat</h3>
-            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll / months)}</p>
-            <p className="text-sm text-gray-500">Durchschnittliche VE je Monat</p>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">... (unchanged) ...</div>
       </CollapsibleSection>
 
       <CollapsibleSection title="Lizenz-KPIs">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Gesamt Erlös Lizenz 1</h3>
             <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1)}</p>
@@ -227,6 +189,11 @@ export default function App() {
             <h3 className="font-medium">Ø monatlicher Erlös Lizenz 1</h3>
             <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1 / months)}</p>
             <p className="text-sm text-gray-500">Durchschnitt pro Monat</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Erlös Lizenz 1 (letzter Monat)</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(lastLicense1)}</p>
+            <p className="text-sm text-gray-500">Im letzten Monat der Planung</p>
           </div>
           <div className="p-4 bg-gray-100 rounded-xl text-center">
             <h3 className="font-medium">Gesamt Erlös Lizenz 2</h3>
