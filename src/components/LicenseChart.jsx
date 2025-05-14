@@ -9,7 +9,6 @@ import {
   Line
 } from 'recharts';
 
-// Eigener Tooltip mit schöner Formatierung
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload || payload.length === 0) return null;
   const d = payload[0].payload;
