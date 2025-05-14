@@ -62,10 +62,7 @@ export default function App() {
 
   // 2) KPI – erstes Jahr
   const totalNew = newPartnersPerMonth.reduce((a, b) => a + b, 0);
-  const reorders = Math.round(
-    newPartnersPerMonth.slice(0, months - reorderCycle)
-      .reduce((sum, c) => sum + c * (reorderRate / 100), 0)
-  );
+  const reorders = chartData.reduce((sum, r) => sum + r.reorderCustomers, 0);
 
   let totalUnitsFirstYear = 0;
   newPartnersPerMonth.forEach(cohortSize => {
@@ -82,7 +79,7 @@ export default function App() {
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
   // 3) Chart-Daten
-const chartData = newPartnersPerMonth.map((cSize, i) => {
+  const chartData = newPartnersPerMonth.map((cSize, i) => {
   const yyyy = startYear + Math.floor((startMonth - 1 + i) / 12);
   const mm = ((startMonth - 1 + i) % 12) + 1;
   const monthLabel = `${String(mm).padStart(2, '0')}/${yyyy}`;
