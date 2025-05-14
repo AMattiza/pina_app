@@ -40,6 +40,7 @@ export default function App() {
     deckungsbeitragPerUnit: 0
   });
 
+  // Recalculate margins
   useEffect(() => {
     const { sellPrice, costPrice, salesCost, logisticsCost } = data;
     const margin = parseFloat((sellPrice - costPrice).toFixed(2));
@@ -66,16 +67,18 @@ export default function App() {
     license2,
     license2Threshold
   } = data;
+
   const [startYear, startMonth] = startDate.split('-').map(Number);
 
-  // Neukunden pro Monat
+  // 1) Neukunden pro Monat
   const newPartnersPerMonth = Array.from(
     { length: months },
     (_, j) =>
-      newPartners + (increaseInterval > 0 ? Math.floor(j / increaseInterval) * increaseAmount : 0)
+      newPartners +
+      (increaseInterval > 0 ? Math.floor(j / increaseInterval) * increaseAmount : 0)
   );
 
-  // KPI – erstes Jahr
+  // 2) KPI erstes Jahr
   const totalNew = newPartnersPerMonth.reduce((a, b) => a + b, 0);
   const reorders = Math.round(
     newPartnersPerMonth
@@ -96,7 +99,7 @@ export default function App() {
   const avgUnitsFirstYear = totalNew > 0 ? totalUnitsFirstYear / totalNew : 0;
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
-  // Chart-Daten
+  // 3) Chart-Daten
   const chartData = newPartnersPerMonth.map((cSize, i) => {
     const yyyy = startYear + Math.floor((startMonth - 1 + i) / 12);
     const mm = ((startMonth - 1 + i) % 12) + 1;
@@ -136,13 +139,13 @@ export default function App() {
     };
   });
 
-  // Gesamt-KPIs
+  // 4) Gesamt-KPIs
   const totalLicense1 = chartData.reduce((sum, r) => sum + r.tier1, 0);
   const totalLicense2 = chartData.reduce((sum, r) => sum + r.tier2, 0);
   const totalUnitsAll = chartData.reduce((sum, r) => sum + r.totalUnits, 0);
   const lastLicense1 = chartData[chartData.length - 1]?.tier1 || 0;
 
-  // JSON-Export
+  // Export-Funktion
   const handleExportAll = () => {
     const exportPayload = {
       inputs: data,
@@ -161,7 +164,7 @@ export default function App() {
       },
       chartData
     };
-    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -172,7 +175,8 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  const fmt = v => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + ' €';
+  const fmt = v =>
+    new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + ' €';
   const fmtNum = v => new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
 
   return (
@@ -180,40 +184,120 @@ export default function App() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-semibold">Business Case Simulator</h1>
-        <button onClick={handleExportAll} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Alle Daten exportieren (JSON)</button>
+        <button onClick={handleExportAll} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Alle Daten exportieren (JSON)
+        </button>
       </div>
 
-      {/* Eingabe */}
+      {/* Eingabemaske */}
       <CollapsibleSection title="Basisdaten & Produktkalkulation">
-        <InputMask data={data} onChange={setData} sections={[ 'Basisdaten', 'Produktkalkulation' ]} />
+        <InputMask data={data} onChange={setData} sections={['Basisdaten', 'Produktkalkulation']} />
       </CollapsibleSection>
       <CollapsibleSection title="Händlerwachstum & Bestellverhalten">
-        <InputMask data={data} onChange={setData} sections={[ 'Händlerwachstum', 'Bestellverhalten' ]} />
+        <InputMask data={data} onChange={setData} sections={['Händlerwachstum', 'Bestellverhalten']} />
       </CollapsibleSection>
-      <CollapsibleSection title="Kostenplanung (Pina)"><InputMask data={data} onChange={setData} sections={[ 'Kostenplanung (Pina)' ]} /></CollapsibleSection>
-      <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop"><InputMask data={data} onChange={setData} sections={[ 'Lizenz 1 / Städteserie (C-Hub)', 'Lizenz 2 / Website & Shop (C-Hub)' ]} /></CollapsibleSection>
+      <CollapsibleSection title="Kostenplanung (Pina)">
+        <InputMask data={data} onChange={setData} sections={['Kostenplanung (Pina)']} />
+      </CollapsibleSection>
+      <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
+        <InputMask data={data} onChange={setData} sections={['Lizenz 1 / Städteserie (C-Hub)', 'Lizenz 2 / Website & Shop (C-Hub)']} />
+      </CollapsibleSection>
 
       {/* Übersichten */}
-      <CollapsibleSection title="Übersicht – Kundenzahlen"><div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Gesamt Neukunden</h3><p className="mt-2 text-2xl font-semibold">{fmtNum(totalNew)}</p><p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p></div>
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3><p className="mt-2 text-2xl font-semibold">{fmtNum(reorders)}</p><p className="text-sm text-gray-500">Anzahl mit mind. einer Nachbestellung im ersten Jahr</p></div>
-      </div></CollapsibleSection>
-      <CollapsibleSection title="Übersicht – Durchschnittswerte"><div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Ø VE pro Händler/Jahr</h3><p className="mt-2 text-2xl font-semibold">{fmtNum(avgUnitsFirstYear)}</p><p className="text-sm text-gray-500">Durchschnitt VE pro Kunde im ersten Jahr</p></div>
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Ø Umsatz pro Händler/Jahr</h3><p className="mt-2 text-2xl font-semibold">{fmt(avgRevenueFirstYear)}</p><p className="text-sm text-gray-500">Durchschnittlicher Umsatz pro Kunde im ersten Jahr</p></div>
-      </div></CollapsibleSection>
-      <CollapsibleSection title="Übersicht – Gesamt VE"><div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">VE insgesamt Ende Planungszeitraum</h3><p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll)}</p><p className="text-sm text-gray-500">Summe aller VE über {months} Monate</p></div>
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Ø VE pro Monat</h3><p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll / months)}</p><p className="text-sm text-gray-500">Durchschnittliche VE je Monat</p></div>
-      </div></CollapsibleSection>
-      <CollapsibleSection title="Lizenz-KPIs"><div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Gesamt Erlös Lizenz 1</h3><p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1)}</p><p className="text-sm text-gray-500">Summe Lizenz 1-Erlöse</p></div>
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Ø monatlicher Erlös Lizenz 1</h3><p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1 / months)}</p><p className="text-sm text-gray-500">Durchschnitt pro Monat</p></div>
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Erlös Lizenz 1 (letzter Monat)</h3><p className="mt-2 text-2xl font-semibold">{fmt(lastLicense1)}</p><p className="text-sm text-gray-500">Im letzten Monat der Planung</p></div>
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Gesamt Erlös Lizenz 2</h3><p className="mt-2 text-2xl font-semibold">{fmt(totalLicense2)}</p><p className="text-sm text-gray-500">Summe Lizenz 2-Erlöse</p></div>
-        <div className="p-4 bg-gray-100 rounded-xl text-center"><h3 className="font-medium">Ø monatlicher Erlös Lizenz 2</h3><p className="mt-2 text-2xl font-semibold">{fmt(totalLicense2 / months)}</p><p className="text-sm text-gray-500">Durchschnitt pro Monat</p></div>
-      </div></CollapsibleSection>
-      <CollapsibleSection title="Einnahmen & Marge"><LicenseChart data={chartData} startYear={startYear} startMonth={startMonth} dataKey="tier1" strokeColor="#34C759" name="Lizenz 1 Erlös" dataKey2="tier2" strokeColor2="#007AFF" name2="Lizenz 2 Erlös" dataKey3="deckungsbeitragII" strokeColor3="#FFD60A" name3="Deckungsbeitrag II" dataKey4="restgewinn" strokeColor4="#FF9500" name4="Restgewinn"/></CollapsibleSection>
+      <CollapsibleSection title="Übersicht – Kundenzahlen">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Gesamt Neukunden</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalNew)}</p>
+            <p className="text-sm text-gray-500">Summe aller Neukunden im ersten Jahr</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Kunden mit ≥1 Nachbestellung</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(reorders)}</p>
+            <p className="text-sm text-gray-500">Anzahl mit mind. einer Nachbestellung im ersten Jahr</p>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Übersicht – Durchschnittswerte">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Ø VE pro Händler/Jahr</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(avgUnitsFirstYear)}</p>
+            <p className="text-sm text-gray-500">Durchschnitt VE pro Kunde im ersten Jahr</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Ø Umsatz pro Händler/Jahr</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(avgRevenueFirstYear)}</p>
+            <p className="text-sm text-gray-500">Durchschnittlicher Umsatz pro Kunde im ersten Jahr</p>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Übersicht – Gesamt VE">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">VE insgesamt Ende Planungszeitraum</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll)}</p>
+            <p className="text-sm text-gray-500">Summe aller VE über {months} Monate</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Ø VE pro Monat</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmtNum(totalUnitsAll / months)}</p>
+            <p className="text-sm text-gray-500">Durchschnittliche VE je Monat</p>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Lizenz-KPIs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Gesamt Erlös Lizenz 1</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1)}</p>
+            <p className="text-sm text-gray-500">Summe Lizenz 1-Erlöse</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Ø monatlicher Erlös Lizenz 1</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense1 / months)}</p>
+            <p className="text-sm text-gray-500">Durchschnitt pro Monat</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Erlös Lizenz 1 (letzter Monat)</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(lastLicense1)}</p>
+            <p className="text-sm text-gray-500">Im letzten Monat der Planung</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Gesamt Erlös Lizenz 2</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense2)}</p>
+            <p className="text-sm text-gray-500">Summe Lizenz 2-Erlöse</p>
+          </div>
+          <div className="p-4 bg-gray-100 rounded-xl text-center">
+            <h3 className="font-medium">Ø monatlicher Erlös Lizenz 2</h3>
+            <p className="mt-2 text-2xl font-semibold">{fmt(totalLicense2 / months)}</p>
+            <p className="text-sm text-gray-500">Durchschnitt pro Monat</p>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Einnahmen & Marge">
+        <LicenseChart
+          data={data}
+          startYear={startYear}
+          startMonth={startMonth}
+          dataKey="tier1"
+          strokeColor="#34C759"
+          name="Lizenz 1 Erlös"
+          dataKey2="tier2"
+          strokeColor2="#007AFF"
+          name2="Lizenz 2 Erlös"
+          dataKey3="deckungsbeitragII"
+          strokeColor3="#FFD60A"
+          name3="Deckungsbeitrag II"
+          dataKey4="restgewinn"
+          strokeColor4="#FF9500"
+          name4="Restgewinn"
+        />
+      </CollapsibleSection>
     </div>
   );
 }
