@@ -82,45 +82,50 @@ export default function App() {
   const avgRevenueFirstYear = avgUnitsFirstYear * sellPrice;
 
   // 3) Chart-Daten
-  const chartData = newPartnersPerMonth.map((cSize, i) => {
-    const yyyy = startYear + Math.floor((startMonth - 1 + i) / 12);
-    const mm = ((startMonth - 1 + i) % 12) + 1;
-    const monthLabel = `${String(mm).padStart(2, '0')}/${yyyy}`;
+const chartData = newPartnersPerMonth.map((cSize, i) => {
+  const yyyy = startYear + Math.floor((startMonth - 1 + i) / 12);
+  const mm = ((startMonth - 1 + i) % 12) + 1;
+  const monthLabel = `${String(mm).padStart(2, '0')}/${yyyy}`;
 
-    const baseUnits = cSize * unitsPerDisplay;
-    let reorderUnits = 0;
-    for (let k = 1; k * reorderCycle <= 23; k++) {
-      const offset = k * reorderCycle;
-      if (offset >= 12 && offset <= 23) {
-        reorderUnits += cSize * (reorderRate / 100) * unitsPerDisplay;
-      }
+  const baseUnits = cSize * unitsPerDisplay;
+
+  // Dynamische Berechnung: Welche früheren Kohorten bestellen nach?
+  let reorderUnits = 0;
+  let reorderCustomers = 0;
+  for (let j = 0; j < i; j++) {
+    const age = i - j;
+    if (reorderCycle > 0 && age >= reorderCycle && age % reorderCycle === 0) {
+      const previousCohort = newPartnersPerMonth[j];
+      reorderUnits += previousCohort * (reorderRate / 100) * unitsPerDisplay;
+      reorderCustomers += Math.round(previousCohort * (reorderRate / 100));
     }
-    const totalUnits = baseUnits + reorderUnits;
+  }
 
-    const bruttoRohertrag = (sellPrice - costPrice) * totalUnits;
-    const vertriebsKosten = salesCost * totalUnits;
-    const logistikKosten = logisticsCost * totalUnits;
-    const deckungsbeitragII = bruttoRohertrag - vertriebsKosten - logistikKosten;
-    const net1 = Math.max(license1Gross - postcardCost - graphicShare, 0);
-    const tier1 = net1 * totalUnits;
-    const tier2 = cSize > license2Threshold ? license2 * totalUnits : 0;
-    const rest = deckungsbeitragII - tier1 - tier2;
+  const totalUnits = baseUnits + reorderUnits;
+  const bruttoRohertrag = (sellPrice - costPrice) * totalUnits;
+  const vertriebsKosten = salesCost * totalUnits;
+  const logistikKosten = logisticsCost * totalUnits;
+  const deckungsbeitragII = bruttoRohertrag - vertriebsKosten - logistikKosten;
+  const net1 = Math.max(license1Gross - postcardCost - graphicShare, 0);
+  const tier1 = net1 * totalUnits;
+  const tier2 = cSize > license2Threshold ? license2 * totalUnits : 0;
+  const rest = deckungsbeitragII - tier1 - tier2;
 
-    return {
-      month: i + 1,
-      monthLabel,
-      newCustomers: cSize,
-      reorderCustomers: Math.round(cSize * (reorderRate / 100)),
-      bruttoRohertrag: Number(bruttoRohertrag.toFixed(2)),
-      vertriebsKosten: Number(vertriebsKosten.toFixed(2)),
-      logistikKosten: Number(logistikKosten.toFixed(2)),
-      deckungsbeitragII: Number(deckungsbeitragII.toFixed(2)),
-      tier1: Number(tier1.toFixed(2)),
-      tier2: Number(tier2.toFixed(2)),
-      restgewinn: Number(rest.toFixed(2)),
-      totalUnits
-    };
-  });
+  return {
+    month: i + 1,
+    monthLabel,
+    newCustomers: cSize,
+    reorderCustomers,
+    bruttoRohertrag: Number(bruttoRohertrag.toFixed(2)),
+    vertriebsKosten: Number(vertriebsKosten.toFixed(2)),
+    logistikKosten: Number(logistikKosten.toFixed(2)),
+    deckungsbeitragII: Number(deckungsbeitragII.toFixed(2)),
+    tier1: Number(tier1.toFixed(2)),
+    tier2: Number(tier2.toFixed(2)),
+    restgewinn: Number(rest.toFixed(2)),
+    totalUnits
+  };
+});
 
   // 4) Gesamt-Übersicht
   const totalLicense1 = chartData.reduce((sum, r) => sum + r.tier1, 0);
