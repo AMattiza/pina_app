@@ -171,19 +171,41 @@ export default function App() {
         </button>
       </div>
 
-      {/* Eingabemodule */}
-      <CollapsibleSection title="Basisdaten & Produktkalkulation">
-        <InputMask data={data} onChange={setData} sections={['Basisdaten', 'Produktkalkulation']} />
-      </CollapsibleSection>
-      <CollapsibleSection title="Händlerwachstum & Bestellverhalten">
-        <InputMask data={data} onChange={setData} sections=['Händlerwachstum', 'Bestellverhalten'} />
-      </CollapsibleSection>
-      <CollapsibleSection title="Kostenplanung (Pina)">
-        <InputMask data={data} onChange={setData} sections=['Kostenplanung (Pina)'} />
-      </CollapsibleSection>
-      <CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
-        <InputMask data={data} onChange={setData} sections=['Lizenz 1 / Städteserie (C-Hub)', 'Lizenz 2 / Website & Shop (C-Hub)'} />
-      </CollapsibleSection>
+     {/* Eingabemasken mit korrektem JSX */}
+<CollapsibleSection title="Basisdaten & Produktkalkulation">
+  <InputMask
+    data={data}
+    onChange={setData}
+    sections={['Basisdaten', 'Produktkalkulation']}
+  />
+</CollapsibleSection>
+
+<CollapsibleSection title="Händlerwachstum & Bestellverhalten">
+  <InputMask
+    data={data}
+    onChange={setData}
+    sections={['Händlerwachstum', 'Bestellverhalten']}
+  />
+</CollapsibleSection>
+
+<CollapsibleSection title="Kostenplanung (Pina)">
+  <InputMask
+    data={data}
+    onChange={setData}
+    sections={['Kostenplanung (Pina)']}
+  />
+</CollapsibleSection>
+
+<CollapsibleSection title="Lizenz 1 / Städteserie & Lizenz 2 / Website & Shop">
+  <InputMask
+    data={data}
+    onChange={setData}
+    sections={[
+      'Lizenz 1 / Städteserie (C-Hub)',
+      'Lizenz 2 / Website & Shop (C-Hub)'
+    ]}
+  />
+</CollapsibleSection>
 
       {/* Übersichten */}
       <CollapsibleSection title="Übersicht – Kundenzahlen">
